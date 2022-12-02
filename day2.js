@@ -2,32 +2,15 @@ const fs = require("fs");
 
 const input = fs.readFileSync("./data/day2.txt", "utf-8");
 
-const loss = (elfMove) => {
-  const value = {
-    A: 3,
-    B: 1,
-    C: 2,
-  };
-  return value[elfMove];
-};
+const loss = (totalValue, moveValue, elfMove) =>
+  ["C", "B"].includes(elfMove) ? totalValue + moveValue - 1 : totalValue + 3;
 
-const win = (elfMove) => {
-  const value = {
-    A: 2,
-    B: 3,
-    C: 1,
-  };
-  return value[elfMove] + 6;
-};
+const win = (totalValue, moveValue, elfMove) =>
+  ["A", "B"].includes(elfMove)
+    ? totalValue + moveValue + 1 + 6
+    : totalValue + moveValue + 1;
 
-const draw = (elfMove) => {
-  const value = {
-    A: 1,
-    B: 2,
-    C: 3,
-  };
-  return value[elfMove] + 3;
-};
+const draw = (totalValue, moveValue, elfMove) => totalValue + moveValue + 3;
 
 const main = (input) => {
   const instructons = {
@@ -41,7 +24,8 @@ const main = (input) => {
 
   return input.split("\n").reduce((totalValue, moves) => {
     const [elfMove, myMove] = moves.split(" ");
-    return totalValue + instructons[myMove](elfMove);
+    const elfMoveValue = instructons[elfMove];
+    return instructons[myMove](totalValue, elfMoveValue, elfMove);
   }, 0);
 };
 
