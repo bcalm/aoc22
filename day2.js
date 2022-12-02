@@ -2,35 +2,46 @@ const fs = require("fs");
 
 const input = fs.readFileSync("./data/day2.txt", "utf-8");
 
-const main = (input) => {
-  const rock = ["A", "X"];
-  const paper = ["B", "Y"];
-  const scissor = ["C", "Z"];
-  const valueChart = {
-    X: 1,
-    Y: 2,
-    Z: 3,
+const loss = (elfMove) => {
+  const value = {
+    A: 3,
+    B: 1,
+    C: 2,
+  };
+  return value[elfMove];
+};
+
+const win = (elfMove) => {
+  const value = {
+    A: 2,
+    B: 3,
+    C: 1,
+  };
+  return value[elfMove] + 6;
+};
+
+const draw = (elfMove) => {
+  const value = {
     A: 1,
     B: 2,
     C: 3,
   };
+  return value[elfMove] + 3;
+};
 
-  return input.split("\n").reduce((con, ele) => {
-    const [elfMove, myMove] = ele.split(" ");
-    if (valueChart[elfMove] === valueChart[myMove]) {
-      return con + valueChart[myMove] + 3;
-    }
-    con += valueChart[myMove];
-    if (rock.includes(elfMove) && paper.includes(myMove)) {
-      con += 6;
-    }
-    if (paper.includes(elfMove) && scissor.includes(myMove)) {
-      con += 6;
-    }
-    if (scissor.includes(elfMove) && rock.includes(myMove)) {
-      con += 6;
-    }
-    return con;
+const main = (input) => {
+  const instructons = {
+    A: 1,
+    B: 2,
+    C: 3,
+    Y: draw,
+    Z: win,
+    X: loss,
+  };
+
+  return input.split("\n").reduce((totalValue, moves) => {
+    const [elfMove, myMove] = moves.split(" ");
+    return totalValue + instructons[myMove](elfMove);
   }, 0);
 };
 
