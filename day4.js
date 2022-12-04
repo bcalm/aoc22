@@ -2,21 +2,22 @@ const fs = require("fs");
 
 const input = fs.readFileSync("./data/day4.txt", "utf-8");
 
+const range = (start, end) => {
+  var ans = [];
+  for (let i = start; i <= end; i++) {
+    ans.push(i);
+  }
+  return ans;
+};
+
 const getRange = (positons) => {
-  return positons.split("-");
+  const [firstNumber, secondNumber] = positons.split("-");
+  return range(+firstNumber, +secondNumber);
 };
 
-const isContainingAllNumbers = (range1, range2) => {
-    console.log(range1, range2, +range1[0] >= +range2[0] && +range1[1] <= +range2[1])
-  return +range1[0] >= +range2[0] && +range1[1] <= +range2[1];
-};
-
-const checkReconsideration = (firstElfRange, secondElfRange) => {
-  return (
-    isContainingAllNumbers(firstElfRange, secondElfRange) ||
-    isContainingAllNumbers(secondElfRange, firstElfRange)
-  );
-};
+function findCommonElements(range1, range2) {
+  return range1.some((item) => range2.includes(item));
+}
 
 const main = (data) => {
   return data.split("\n").reduce((reconsiderationValue, currentInstruction) => {
@@ -24,9 +25,8 @@ const main = (data) => {
       currentInstruction.split(",");
     const firstElfRange = getRange(firstElfPositions);
     const secondElfRange = getRange(secondElfPositions);
-    return (
-      reconsiderationValue + checkReconsideration(firstElfRange, secondElfRange)
-    );
+    const value = findCommonElements(firstElfRange, secondElfRange);
+    return reconsiderationValue + value;
   }, 0);
 };
 
