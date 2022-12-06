@@ -13,29 +13,33 @@ const parseInstruction = (rawData) => {
 const trimWhiteSpaces = (crate) => crate.filter((space) => space !== " ");
 
 const parseCrates = (rawData) => {
-  const splittedData = rawData
-    .split("\n")
-    .slice(0, rawData.split("\n").length - 1);
-  const crates = [[], [], [], [], [], [], [], [], []];
-  for (let index = 0; index < splittedData.length; index++) {
-    const currentData = splittedData[index];
-    crates[0].push(currentData[1]);
-    crates[1].push(currentData[5]);
-    crates[2].push(currentData[9]);
-    crates[3].push(currentData[13]);
-    crates[4].push(currentData[17]);
-    crates[5].push(currentData[21]);
-    crates[6].push(currentData[25]);
-    crates[7].push(currentData[29]);
-    crates[8].push(currentData[33]);
-  }
-  return crates.map(trimWhiteSpaces);
+  const distanceBetweenCrates = 4;
+  const rowData = rawData.split("\n");
+  const totalCrates = Math.ceil(rowData[0].length / distanceBetweenCrates);
+  const crates = new Array(totalCrates).fill(0).map((data) => new Array());
+  const data = rowData
+    .slice(0, rowData.length - 1)
+    .reduce((organizedCrates, currentCrate) => {
+      console.log(currentCrate);
+      currentCrate.split("").forEach((element, currIndex) => {
+        if (!["[", " ", "]"].includes(element)) {
+          const crateToAdd = Math.round(currIndex / distanceBetweenCrates);
+          console.log(crateToAdd);
+          organizedCrates[crateToAdd].push(element);
+        }
+      });
+      return organizedCrates;
+    }, crates);
+  console.log(data);
+  return data;
 };
 
 const moveCrates = (crates, instructions) => {
   return instructions.reduce((cratePositions, currentInstruction) => {
     const [count, from, to] = currentInstruction;
-    cratePositions[to - 1].unshift(...cratePositions[from - 1].splice(0, count));
+    cratePositions[to - 1].unshift(
+      ...cratePositions[from - 1].splice(0, count)
+    );
     return cratePositions;
   }, crates);
 };
@@ -44,13 +48,12 @@ const main = (data) => {
   const [crates, instructions] = data.split("\n\n");
   const parsedInstructions = parseInstruction(instructions);
   const parsedCrates = parseCrates(crates);
-  return moveCrates(parsedCrates, parsedInstructions).reduce(
-    (arrangedCrates, currentCrate) => {
+  return moveCrates(parsedCrates, parsedInstructions)
+    .reduce((arrangedCrates, currentCrate) => {
       arrangedCrates.push(currentCrate[0]);
-      return arrangedCrates
-    },
-    []
-  ).join('');
+      return arrangedCrates;
+    }, [])
+    .join("");
 };
 
 console.log(main(input));
