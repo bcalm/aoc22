@@ -10,14 +10,12 @@ const parseInstruction = (rawData) => {
   }, []);
 };
 
-const trimWhiteSpaces = (crate) => crate.filter((space) => space !== " ");
-
 const parseCrates = (rawData) => {
   const distanceBetweenCrates = 4;
   const rowData = rawData.split("\n");
   const totalCrates = Math.ceil(rowData[0].length / distanceBetweenCrates);
   const crates = new Array(totalCrates).fill(0).map((data) => new Array());
-  const data = rowData
+  return rowData
     .slice(0, rowData.length - 1)
     .reduce((organizedCrates, currentCrate) => {
       console.log(currentCrate);
@@ -30,8 +28,6 @@ const parseCrates = (rawData) => {
       });
       return organizedCrates;
     }, crates);
-  console.log(data);
-  return data;
 };
 
 const moveCrates = (crates, instructions) => {
