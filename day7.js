@@ -1,94 +1,66 @@
 const { dir } = require("console");
 const fs = require("fs");
 
-const input = fs.readFileSync("./data/day7.txt", "utf-8");
+// part 1 1307902
+// part 2 7068748
 
-const calculateEachDirectorySize = (directories, directory, root) => {
-  const children = root[directory].child;
-  children.forEach((child) => {
-    if (root.child) {
-      calculateEachDirectorySize(directories, child, root);
+const input = fs.readFileSync("./data/day7.txt", "utf-8").trimEnd();
+
+const getNodes = (instructions) => {
+  let currentId = 0;
+  const root = [
+    { name: "/", type: "dir", size: 0, parent: null, id: currentId },
+  ];
+  const directoryIdMap = { "/": 0 };
+  for (
+    let instructionIndex = 1;
+    instructionIndex < instructions.length;
+    instructionIndex++
+  ) {
+    const [command, instruction] = instructions[instructionIndex].split(" ");
+    if (command.startsWith("ls")) continue;
+    if (command.startsWith("cd")) {
+      currentId =
+        instruction === ".."
+          ? directoryIdMap[root[currentId].parent]
+          : directoryIdMap[instruction];
+      continue;
     }
-    root[directory].size += +root[child].size;
-  });
-};
-
-const calculateDirectoriesSize = (directories, root) => {
-  directories.forEach((directory) => {
-    calculateEachDirectorySize(directories, directory, root);
-  });
-  directories.forEach((directory) => {
-    root[directory].child
-      .filter((c) => directories.includes(c))
-      .forEach((c) => {
-        root[directory].size += root[c].size;
+    if (command === "dir") {
+      root.push({
+        name: instruction,
+        type: "dir",
+        size: 0,
+        parent: root[currentId].name,
+        id: root.length,
       });
-  });
-};
-
-const filterDirectories = (root) => {
-  return Object.values(root)
-    .filter((data) => data.child && data.child.length)
-    .map((data) => data.name);
-};
-
-const calculateDirectoriesTotalSize = (directories, root) => {
-    return Object.values(root)
-      .filter((dir) => dir.size <= 100000)
-      .reduce((acc, dir) => acc + +dir.size, 0)
-
-}
-
-const handleCd = (directoryMap, instruction) => {
-  directoryMap.pwd =
-    instruction.split(" ")[2] === ".."
-      ? directoryMap[directoryMap.pwd].parent
-      : instruction.split(" ")[2];
-  return directoryMap;
-};
-
-const handleListOutput = (directoryMap, instruction) => {
-  const currentDirectory = directoryMap.pwd;
-  const child = directoryMap[currentDirectory].child;
-  const [size, name] = instruction.split(" ");
-  child.push(name);
-  if (instruction.startsWith("dir")) {
-    directoryMap[name] = {
-      name: instruction.split(" ")[1],
-      child: [],
-      parent: currentDirectory,
-      size: 0,
-    };
-  } else {
-    directoryMap[name] = {
-      name,
-      child: [],
-      parent: currentDirectory,
-      size,
-    };
+      directoryIdMap[instruction] = root.length - 1;
+    } else {
+      root.push({
+        name: instruction,
+        type: "file",
+        size: +command,
+        parent: root[currentId].name,
+        id: root.length,
+      });
+    }
   }
+  return [root, directoryIdMap];
 };
+
+
 
 const main = (data) => {
-  const directoryStructure = {
-    pwd: "/",
-    "/": { name: "/", child: [], parent: null, size: 0 },
-  };
-  const root = data
+  const instructions = data
     .split("\n")
-    .slice(1, data.split("\n").length)
-    .reduce((directoryMap, instruction) => {
-      if (instruction.startsWith("$ cd")) {
-        handleCd(directoryMap, instruction);
-      }
-      if (!instruction.startsWith("$")) {
-        handleListOutput(directoryMap, instruction);
-      }
-      return directoryMap;
-    }, directoryStructure);
-  const directories = filterDirectories(root);
-  calculateDirectoriesSize(directories, root);
-  return calculateDirectoriesTotalSize(directories, root);
+    .map((instruction) => instruction.replace("$ ", ""));
+  const [nodes, directoryIdMap] = getNodes(instructions);
+  console.log(nodes, directoryIdMap)
+  return nodes
+    .filter((node) => node.size < 100000 && node.type === "dir")
+    .reduce((total, node) => {
+      return (total += node.size);
+    }, 0);
 };
 
-console.log(main(input), "last");
+console.log(main(input));
