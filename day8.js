@@ -1,58 +1,74 @@
-const { Cipher } = require("crypto");
 const fs = require("fs");
 
 const input = fs.readFileSync("./data/day8.txt", "utf-8").split("\n");
 
 const isInEdge = (rowPosition, columnPosition, totalLength) => {
-  return (
-    rowPosition === 0 ||
-    columnPosition === 0 ||
-    rowPosition === totalLength ||
-    columnPosition === totalLength
-  );
+    return (
+        rowPosition === 0 ||
+        columnPosition === 0 ||
+        rowPosition === totalLength ||
+        columnPosition === totalLength
+    );
 };
 
-const isTallest = (rows, columns, treeValue, rowPosition, columnPosition) => {
-  const leftPart = columns[columnPosition].slice(0, rowPosition);
-  const rightPart = columns[columnPosition].slice(rowPosition + 1, 99);
-  const leftColumnMaxValue = Math.max(...leftPart);
-  const rightColumnMaxValue = Math.max(...rightPart);
-  const leftPartRow = rows[rowPosition].slice(0, columnPosition);
-  const rightPartRow = rows[rowPosition].slice(columnPosition + 1, 99);
-  const leftRowMaxValue = Math.max(...leftPartRow);
-  const rightRowMaxValue = Math.max(...rightPartRow);
-  return (
-    treeValue > leftColumnMaxValue ||
-    treeValue > rightColumnMaxValue ||
-    treeValue > leftRowMaxValue ||
-    treeValue > rightRowMaxValue
-  );
+const calculateView = (array, value, index = 0) => {
+    if (index === array.length) return index;
+    if (array[index] > value) return index + 1;
+    if (array[index] === value) return index + 1;
+    return calculateView(array, value, index + 1);
 };
+
+const calculateScenicScore = (
+    rows,
+    columns,
+    treeValue,
+    position
+) => {
+    const [rowPosition, columnPosition] = position
+        .split("-")
+        .map((position) => +position);
+    if (isInEdge(rowPosition, columnPosition, input.length)) return 0;
+    const up = columns[columnPosition].slice(0, rowPosition);
+    const down = columns[columnPosition].slice(rowPosition + 1, input.length);
+    const left = rows[rowPosition].slice(0, columnPosition);
+    const right = rows[rowPosition].slice(columnPosition + 1, input.length);
+    const upView = calculateView(up.reverse(), treeValue);
+    const downView = calculateView(down, treeValue);
+    const leftView = calculateView(left.reverse(), treeValue);
+    const rightView = calculateView(right, treeValue);
+    return upView * downView * leftView * rightView;
+};
+
+function calculateAllTreesScenicViews(treeMap, rows, columns) {
+    return Object.keys(treeMap).map((position) => calculateScenicScore(
+            rows,
+            columns,
+            treeMap[position],
+            position
+        )
+    );
+}
+
+function getTreeMap(data) {
+    const treeMap = {};
+    const rows = new Array(input.length).fill(0).map(() => []);
+    const columns = new Array(input.length).fill(0).map(() => []);
+    for (let rowIndex = 0; rowIndex < input.length; rowIndex++) {
+        const row = data[rowIndex];
+        const trees = row.split("");
+        for (let columnIndex = 0; columnIndex < input.length; columnIndex++) {
+            const tree = +trees[columnIndex];
+            rows[rowIndex].push(tree);
+            columns[columnIndex].push(tree);
+            treeMap[`${rowIndex}-${columnIndex}`] = tree;
+        }
+    }
+    return {treeMap, rows, columns};
+}
 
 const main = (data) => {
-  const treeMap = {};
-  const totalLength = data.length;
-  const rows = new Array(totalLength).fill(0).map((data) => new Array());
-  const columns = new Array(totalLength).fill(0).map((data) => new Array());
-  for (let rowIndex = 0; rowIndex < totalLength; rowIndex++) {
-    const row = data[rowIndex];
-    const trees = row.split("");
-    for (let columnIndex = 0; columnIndex < totalLength; columnIndex++) {
-      const tree = +trees[columnIndex];
-      rows[rowIndex].push(tree);
-      columns[columnIndex].push(tree);
-      treeMap[`${rowIndex}-${columnIndex}`] = tree;
-    }
-  }
-  return Object.keys(treeMap).filter((position) => {
-    const [rowPosition, columnPosition] = position
-      .split("-")
-      .map((position) => +position);
-    return (
-      isInEdge(rowPosition, columnPosition, totalLength - 1) ||
-      isTallest(rows, columns, treeMap[position], rowPosition, columnPosition)
-    );
-  }).length;
+    const {treeMap, rows, columns} = getTreeMap(data);
+    return Math.max(...calculateAllTreesScenicViews(treeMap, rows, columns));
 };
 
 console.log(main(input));
