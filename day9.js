@@ -1,76 +1,49 @@
 const fs = require("fs");
 
-const input = fs.readFileSync("./data/day9.txt", "utf-8").trimEnd().split("\n");
+const input = fs.readFileSync("./data/day9.txt", "utf-8").trimEnd();
 
-const moveTail = (status, uniqTailPosition) => {
-  if (
-    Math.abs(status.currentHeadPosition[0] - status.currentTailPosition[0]) <
-      2 &&
-    Math.abs(status.currentHeadPosition[1] - status.currentTailPosition[1]) < 2
-  )
-    return;
-  status.lastTailPosition = status.currentTailPosition;
-  status.currentTailPosition = status.lastHeadPosition;
-  uniqTailPosition.add(status.currentTailPosition.join("-"));
-};
-
-const moveRight = (status, steps, uniqTailPosition) => {
-  for (let index = 0; index < +steps; index++) {
-    const currentPosition = status.currentHeadPosition;
-    const newHeadPosition = [currentPosition[0], currentPosition[1] + 1];
-    status.lastHeadPosition = status.currentHeadPosition;
-    status.currentHeadPosition = newHeadPosition;
-    moveTail(status, uniqTailPosition);
-  }
-};
-const moveUp = (status, steps, uniqTailPosition) => {
-  for (let index = 0; index < +steps; index++) {
-    const currentPosition = status.currentHeadPosition;
-    const newHeadPosition = [currentPosition[0] - 1, currentPosition[1]];
-    status.lastHeadPosition = status.currentHeadPosition;
-    status.currentHeadPosition = newHeadPosition;
-    moveTail(status, uniqTailPosition);
-  }
-};
-const moveLeft = (status, steps, uniqTailPosition) => {
-  for (let index = 0; index < +steps; index++) {
-    const currentPosition = status.currentHeadPosition;
-    const newHeadPosition = [currentPosition[0], currentPosition[1] - 1];
-    status.lastHeadPosition = status.currentHeadPosition;
-    status.currentHeadPosition = newHeadPosition;
-    moveTail(status, uniqTailPosition);
-  }
-};
-const moveDown = (status, steps, uniqTailPosition) => {
-  for (let index = 0; index < +steps; index++) {
-    const currentPosition = status.currentHeadPosition;
-    const newHeadPosition = [currentPosition[0] + 1, currentPosition[1]];
-    status.lastHeadPosition = status.currentHeadPosition;
-    status.currentHeadPosition = newHeadPosition;
-    moveTail(status, uniqTailPosition);
-  }
-};
-
-const main = (data) => {
-  const status = {
-    currentTailPosition: [100, 100],
-    lastHeadPosition: null,
-    currentHeadPosition: [100, 100],
-    lastTailPosition: null,
-  };
-  const move = {
-    R: moveRight,
-    U: moveUp,
-    L: moveLeft,
-    D: moveDown,
-  };
-  const uniqTailPosition = new Set();
-  uniqTailPosition.add(status.currentTailPosition.join("-"));
-  data.forEach((instruction) => {
-    const [direction, steps] = instruction.split(" ");
-    move[direction](status, steps, uniqTailPosition);
+const main = (input) => {
+  const moves = input.split("\n").map((line) => {
+    let [direction, number] = line.split(" ");
+    return { direction, number: parseInt(number) };
   });
-  return uniqTailPosition.size;
+
+  const body = new Array(10).fill(0).map((element) => {
+    return { x: 0, y: 0 };
+  });
+
+  const direction = {
+    L: { x: -1, y: 0 },
+    R: { x: 1, y: 0 },
+    U: { x: 0, y: -1 },
+    D: { x: 0, y: 1 },
+  };
+
+  const positions = new Set();
+  positions.add(`${body[body.length - 1].x}-${body[body.length - 1].y}`);
+  moves.forEach((move) => {
+    for (let step = 0; step < move.number; step++) {
+      body[0].x += direction[move.direction].x;
+      body[0].y += direction[move.direction].y;
+
+      for (let i = 1; i < body.length; i++) {
+        const distX = body[i - 1].x - body[i].x;
+        const distY = body[i - 1].y - body[i].y;
+
+        if (Math.abs(distX) >= 2) {
+          body[i].x += Math.sign(distX);
+          if (Math.abs(distY) != 0) body[i].y += Math.sign(distY);
+        } else if (Math.abs(distY) >= 2) {
+          body[i].y += Math.sign(distY);
+          if (Math.abs(distX) != 0) body[i].x += Math.sign(distX);
+        }
+      }
+
+      positions.add(`${body[body.length - 1].x}-${body[body.length - 1].y}`);
+    }
+  });
+
+  return positions.size;
 };
 
 console.log(main(input));
