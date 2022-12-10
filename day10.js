@@ -9,37 +9,25 @@ const main = (input) => {
     .map((data) => [data[0], Number(data[1])]);
   let currentValue = 1;
   let currentCycle = 1;
-  const cyleValues = {};
+  let registerPositions = [currentValue, currentValue + 1, currentValue + 2];
+  let map = "";
   instructions.forEach((instruction) => {
     const [command, value] = instruction;
     if (command === "noop") {
+      map += registerPositions.includes(currentCycle % 40) ? "#" : " ";
       currentCycle++;
-      cyleValues[currentCycle] = currentValue;
     } else {
+      map += registerPositions.includes(currentCycle % 40) ? "#" : " ";
       currentCycle++;
-      cyleValues[currentCycle] = currentValue;
+      map += registerPositions.includes(currentCycle % 40) ? "#" : " ";
       currentCycle++;
       currentValue += value;
-      cyleValues[currentCycle] = currentValue;
+      registerPositions = [currentValue, currentValue + 1, currentValue + 2];
     }
   });
-  console.log(
-    cyleValues[20],
-    cyleValues[60],
-    cyleValues[100],
-    cyleValues[140],
-    cyleValues[180],
-    cyleValues[220]
-  );
-  return (
-    cyleValues[20] * 20 +
-    cyleValues[60] * 60 +
-    cyleValues[100] * 100 +
-    cyleValues[140] * 140 +
-    cyleValues[180] * 180 +
-    cyleValues[220] * 220
-  );
-  // );
+  for (let index = 0; index < 241; index += 40) {
+    console.log(map.slice(index, index + 40));
+  }
 };
 
-console.log(main(input));
+main(input);
