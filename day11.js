@@ -28,8 +28,11 @@ const main = (input) => {
     "+": (firstNum, secondNum) => firstNum + secondNum,
     "*": (firstNum, secondNum) => firstNum * secondNum,
   };
-  const reduceWorryBy = 3;
-  for (let round = 0; round < 20; round++) {
+  const reduceWorryBy = monkeys.reduce(
+    (total, current) => total * current.testParam,
+    1
+  );
+  for (let round = 0; round < 10000; round++) {
     for (let monkeyNumber = 0; monkeyNumber < monkeys.length; monkeyNumber++) {
       const monkey = monkeys[monkeyNumber];
       while (monkey.items.length) {
@@ -40,18 +43,22 @@ const main = (input) => {
             ? currentWorryLevel
             : +monkey.operation[2];
         const newWorryLevel = Math.floor(
-          operator(currentWorryLevel, increaseWorryLevel) / reduceWorryBy
+          operator(currentWorryLevel, increaseWorryLevel) % reduceWorryBy
         );
         const nextMonkeyNumber =
-        newWorryLevel % monkey.testParam === 0
-        ? monkey.trueScenario
-        : monkey.falseScenario;
+          newWorryLevel % monkey.testParam === 0
+            ? monkey.trueScenario
+            : monkey.falseScenario;
         monkeys[nextMonkeyNumber].items.push(newWorryLevel);
         monkey.inspection++;
       }
     }
   }
-  return monkeys.map(monkey=> monkey.inspection).sort((a,b) => b-a).slice(0,2).reduce((total, current) => total * current)
+  return monkeys
+    .map((monkey) => monkey.inspection)
+    .sort((a, b) => b - a)
+    .slice(0, 2)
+    .reduce((total, current) => total * current);
 };
 
 console.log(main(input));
